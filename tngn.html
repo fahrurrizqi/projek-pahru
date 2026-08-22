@@ -319,6 +319,9 @@
             if (isIndexOpen && isMiddleOpen && isRingOpen && !isPinkyOpen) {
                 return 3;
             }
+            if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+                return 3;
+            }
             if (isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
                 return 2;
             }
