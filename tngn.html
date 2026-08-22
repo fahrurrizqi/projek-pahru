@@ -241,23 +241,35 @@
             return pos;
         }
 
-        function getUranusPositions() {
+        function getBearPositions() {
             const pos = new Float32Array(PARTICLE_COUNT * 3);
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                if (i < PARTICLE_COUNT * 0.45) {
-                    const u = Math.random() * Math.PI * 2;
-                    const v = Math.random() * Math.PI;
-                    const r = 2.5;
-                    pos[i * 3] = r * Math.sin(v) * Math.cos(u);
-                    pos[i * 3 + 1] = r * Math.sin(v) * Math.sin(u);
-                    pos[i * 3 + 2] = r * Math.cos(v);
-                } else {
-                    const theta = Math.random() * Math.PI * 2;
-                    const r = 3.8 + Math.random() * 2.8;
-                    pos[i * 3] = r * Math.cos(theta);
-                    pos[i * 3 + 1] = (Math.random() - 0.5) * 0.25;
-                    pos[i * 3 + 2] = r * Math.sin(theta);
+            const parts = [
+                { x: 0, y: 1.7, rx: 1.6, ry: 1.35, count: 0.34 },
+                { x: 0, y: -1.05, rx: 1.75, ry: 1.35, count: 0.32 },
+                { x: -1.45, y: 1.65, rx: 0.5, ry: 0.55, count: 0.07 },
+                { x: 1.45, y: 1.65, rx: 0.5, ry: 0.55, count: 0.07 },
+                { x: -1.65, y: 0.15, rx: 0.75, ry: 0.3, count: 0.06 },
+                { x: 1.65, y: 0.15, rx: 0.75, ry: 0.3, count: 0.06 },
+                { x: 0, y: 0.15, rx: 0.5, ry: 0.36, count: 0.08 }
+            ];
+            let particleIndex = 0;
+            parts.forEach((part) => {
+                const count = Math.floor(PARTICLE_COUNT * part.count);
+                for (let i = 0; i < count && particleIndex < PARTICLE_COUNT; i++, particleIndex++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = Math.sqrt(Math.random());
+                    pos[particleIndex * 3] = part.x + Math.cos(angle) * part.rx * radius;
+                    pos[particleIndex * 3 + 1] = part.y + Math.sin(angle) * part.ry * radius;
+                    pos[particleIndex * 3 + 2] = (Math.random() - 0.5) * 0.25;
                 }
+            });
+            while (particleIndex < PARTICLE_COUNT) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.sqrt(Math.random());
+                pos[particleIndex * 3] = Math.cos(angle) * 1.6 * radius;
+                pos[particleIndex * 3 + 1] = -1.05 + Math.sin(angle) * 1.35 * radius;
+                pos[particleIndex * 3 + 2] = (Math.random() - 0.5) * 0.25;
+                particleIndex++;
             }
             return pos;
         }
@@ -321,18 +333,12 @@
             return col;
         }
 
-        function getUranusColors() {
+        function getBearColors() {
             const col = new Float32Array(PARTICLE_COUNT * 3);
             for (let i = 0; i < PARTICLE_COUNT; i++) {
-                if (i < PARTICLE_COUNT * 0.45) {
-                    col[i * 3] = 0.35 + Math.random() * 0.15;
-                    col[i * 3 + 1] = 0.85 + Math.random() * 0.15;
-                    col[i * 3 + 2] = 0.9 + Math.random() * 0.1;
-                } else {
-                    col[i * 3] = 0.25 + Math.random() * 0.15;
-                    col[i * 3 + 1] = 0.75 + Math.random() * 0.2;
-                    col[i * 3 + 2] = 0.85 + Math.random() * 0.15;
-                }
+                col[i * 3] = 0.65 + Math.random() * 0.2;
+                col[i * 3 + 1] = 0.25 + Math.random() * 0.15;
+                col[i * 3 + 2] = 0.1 + Math.random() * 0.1;
             }
             return col;
         }
@@ -350,15 +356,15 @@
         const shapes = [
             getCloudPositions(),
             getHeartPositions(),
-            getUranusPositions(),
-            getTextPositions()
+            getTextPositions(),
+            getBearPositions()
         ];
 
         const shapeColors = [
             getCloudColors(),
             getHeartColors(),
-            getUranusColors(),
-            getTextColor()
+            getTextColor(),
+            getBearColors()
         ];
 
         function initThreeJS() {
@@ -425,7 +431,7 @@
             geometry.attributes.position.needsUpdate = true;
             geometry.attributes.color.needsUpdate = true;
 
-            if (activeShapeIndex === 3) {
+            if (activeShapeIndex === 2 || activeShapeIndex === 3) {
                 particles.rotation.x = THREE.MathUtils.lerp(particles.rotation.x, 0, 0.1);
                 particles.rotation.y = THREE.MathUtils.lerp(particles.rotation.y, 0, 0.1);
                 particles.rotation.z = THREE.MathUtils.lerp(particles.rotation.z, 0, 0.1);
@@ -433,10 +439,6 @@
                 particles.rotation.y += 0.01;
                 particles.rotation.x = THREE.MathUtils.lerp(particles.rotation.x, 0, 0.1);
                 particles.rotation.z = THREE.MathUtils.lerp(particles.rotation.z, 0, 0.1);
-            } else if (activeShapeIndex === 2) {
-                particles.rotation.y += 0.012;
-                particles.rotation.x += 0.008;
-                particles.rotation.z += 0.003;
             } else {
                 particles.rotation.y += 0.005;
             }
@@ -456,20 +458,17 @@
             const isRingOpen = landmarks[16].y < landmarks[14].y;
             const isPinkyOpen = landmarks[20].y < landmarks[18].y;
 
-            if (isIndexOpen && isMiddleOpen && isRingOpen && !isPinkyOpen) {
-                return 3;
-            }
             if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
-                return 3;
-            }
-            if (isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
                 return 2;
             }
-            if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+            if (isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
                 return 1;
             }
-            if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) {
+            if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
                 return 0;
+            }
+            if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) {
+                return 3;
             }
 
             return activeShapeIndex;
@@ -517,17 +516,32 @@
 
         function onResults(results) {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const landmarks = results.multiHandLandmarks[0];
-                const isThreeFinger = isThreeFingerGesture(landmarks);
-                const isFourFinger = isFourFingerGesture(landmarks);
-                const shapeIndex = detectGesture(landmarks);
+                const gestures = results.multiHandLandmarks.map((landmarks) => ({
+                    landmarks,
+                    shapeIndex: detectGesture(landmarks),
+                    isThreeFinger: isThreeFingerGesture(landmarks),
+                    isFourFinger: isFourFingerGesture(landmarks)
+                }));
+                const isFourFinger = gestures.some((gesture) => gesture.isFourFinger);
+                const isThreeFinger = gestures.some((gesture) => gesture.isThreeFinger);
+                const shapeIndex = isFourFinger
+                    ? 3
+                    : gestures.some((gesture) => gesture.shapeIndex === 1)
+                        ? 1
+                        : gestures.some((gesture) => gesture.shapeIndex === 2)
+                            ? 2
+                            : 0;
                 setShape(shapeIndex);
+
+                if (shapeIndex === 0) {
+                    hideFlowerAnimation();
+                    hideBearAnimation();
+                }
 
                 if (isFourFinger) {
                     fourFingerFrames++;
                     nonFourFingerFrames = 0;
                     hideFlowerAnimation();
-                    if (fourFingerFrames >= 3) showBearAnimation();
                 } else {
                     fourFingerFrames = 0;
                     nonFourFingerFrames++;
@@ -564,7 +578,7 @@
         });
 
         hands.setOptions({
-            maxNumHands: 1,
+            maxNumHands: 2,
             modelComplexity: 1,
             minDetectionConfidence: 0.6,
             minTrackingConfidence: 0.6
