@@ -37,6 +37,19 @@
             text-align: center;
             z-index: 100;
         }
+        #flower-animation {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: none;
+            z-index: 20;
+            background: #020008;
+        }
+        #flower-animation.visible {
+            display: block;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -47,6 +60,7 @@
     <div id="error-msg">⚠️ Kamera tidak terdeteksi atau izin akses kamera ditolak!<br>Mohon izinkan akses kamera pada browser Anda.</div>
 
     <video id="webcam" autoplay playsinline muted></video>
+    <iframe id="flower-animation" src="bunga.html" title="Animasi bunga"></iframe>
 
     <script>
         const PARTICLE_COUNT = 8000;
@@ -57,6 +71,9 @@
         let targetColors = new Float32Array(PARTICLE_COUNT * 3);
         
         let activeShapeIndex = 0;
+        let threeFingerFrames = 0;
+        let nonThreeFingerFrames = 0;
+        let flowerAnimationVisible = false;
 
         
         function getCloudPositions() {
@@ -299,7 +316,7 @@
             const isRingOpen = landmarks[16].y < landmarks[14].y;
             const isPinkyOpen = landmarks[20].y < landmarks[18].y;
 
-            if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+            if (isIndexOpen && isMiddleOpen && isRingOpen && !isPinkyOpen) {
                 return 3;
             }
             if (isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
@@ -315,15 +332,56 @@
             return activeShapeIndex;
         }
 
+        function isThreeFingerGesture(landmarks) {
+            return landmarks[8].y < landmarks[6].y &&
+                landmarks[12].y < landmarks[10].y &&
+                landmarks[16].y < landmarks[14].y &&
+                landmarks[20].y >= landmarks[18].y;
+        }
+
+        function showFlowerAnimation() {
+            if (flowerAnimationVisible) return;
+            flowerAnimationVisible = true;
+            flowerAnimation.classList.add('visible');
+            if (flowerAnimation.contentWindow.openMagic) {
+                flowerAnimation.contentWindow.resetAnimation();
+                flowerAnimation.contentWindow.openMagic();
+            }
+        }
+
+        function hideFlowerAnimation() {
+            flowerAnimationVisible = false;
+            flowerAnimation.classList.remove('visible');
+        }
+
         function onResults(results) {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const shapeIndex = detectGesture(results.multiHandLandmarks[0]);
+                const landmarks = results.multiHandLandmarks[0];
+                const isThreeFinger = isThreeFingerGesture(landmarks);
+                const shapeIndex = detectGesture(landmarks);
                 setShape(shapeIndex);
+
+                if (isThreeFinger) {
+                    threeFingerFrames++;
+                    nonThreeFingerFrames = 0;
+                    if (threeFingerFrames >= 3) showFlowerAnimation();
+                } else {
+                    threeFingerFrames = 0;
+                    nonThreeFingerFrames++;
+                    if (nonThreeFingerFrames >= 5) hideFlowerAnimation();
+                }
             }
         }
 
         const videoElement = document.getElementById('webcam');
         const errorMsg = document.getElementById('error-msg');
+        const flowerAnimation = document.getElementById('flower-animation');
+
+        flowerAnimation.addEventListener('load', () => {
+            if (flowerAnimationVisible && flowerAnimation.contentWindow.openMagic) {
+                flowerAnimation.contentWindow.openMagic();
+            }
+        });
 
         initThreeJS();
 
