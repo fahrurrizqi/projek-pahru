@@ -50,6 +50,127 @@
         #flower-animation.visible {
             display: block;
         }
+        #bear-animation {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            background: radial-gradient(circle, rgba(50, 25, 20, 0.82), rgba(5, 5, 5, 0.96));
+        }
+        #bear-animation.visible {
+            display: flex;
+        }
+        .bear {
+            position: relative;
+            width: 190px;
+            height: 260px;
+            animation: bearFloat 2.2s ease-in-out infinite;
+        }
+        .bear-ear {
+            position: absolute;
+            top: 8px;
+            width: 62px;
+            height: 62px;
+            border: 8px solid #5b3426;
+            border-radius: 50%;
+            background: #c47a4a;
+        }
+        .bear-ear.left { left: 8px; }
+        .bear-ear.right { right: 8px; }
+        .bear-head {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            width: 140px;
+            height: 125px;
+            border-radius: 48% 48% 45% 45%;
+            background: #c47a4a;
+            border: 8px solid #5b3426;
+            z-index: 2;
+        }
+        .bear-muzzle {
+            position: absolute;
+            left: 31px;
+            bottom: 17px;
+            width: 62px;
+            height: 42px;
+            border-radius: 50%;
+            background: #f0b477;
+        }
+        .bear-eye {
+            position: absolute;
+            top: 42px;
+            width: 12px;
+            height: 16px;
+            border-radius: 50%;
+            background: #21130f;
+        }
+        .bear-eye.left { left: 35px; }
+        .bear-eye.right { right: 35px; }
+        .bear-nose {
+            position: absolute;
+            left: 56px;
+            top: 72px;
+            width: 25px;
+            height: 17px;
+            border-radius: 50%;
+            background: #21130f;
+        }
+        .bear-body {
+            position: absolute;
+            bottom: 0;
+            left: 22px;
+            width: 146px;
+            height: 135px;
+            border-radius: 48% 48% 35% 35%;
+            background: #ad653b;
+            border: 8px solid #5b3426;
+        }
+        .bear-arm {
+            position: absolute;
+            top: 112px;
+            width: 78px;
+            height: 36px;
+            border-radius: 30px;
+            background: #c47a4a;
+            border: 8px solid #5b3426;
+            z-index: 4;
+        }
+        .bear-arm.left { left: -17px; transform: rotate(25deg); }
+        .bear-arm.right { right: -17px; transform: rotate(-25deg); }
+        .bear-heart {
+            position: absolute;
+            left: 66px;
+            top: 120px;
+            width: 58px;
+            height: 58px;
+            background: #ff3b69;
+            transform: rotate(-45deg);
+            box-shadow: 0 0 28px rgba(255, 59, 105, 0.9);
+            z-index: 5;
+            animation: heartBeat 1.1s ease-in-out infinite;
+        }
+        .bear-heart::before,
+        .bear-heart::after {
+            content: '';
+            position: absolute;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #ff3b69;
+        }
+        .bear-heart::before { top: -29px; left: 0; }
+        .bear-heart::after { top: 0; left: 29px; }
+        @keyframes bearFloat {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-18px) rotate(2deg); }
+        }
+        @keyframes heartBeat {
+            0%, 100% { scale: 1; }
+            50% { scale: 1.14; }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -61,6 +182,22 @@
 
     <video id="webcam" autoplay playsinline muted></video>
     <iframe id="flower-animation" src="bunga.html" title="Animasi bunga"></iframe>
+    <div id="bear-animation" aria-label="Boneka beruang memegang hati">
+        <div class="bear">
+            <div class="bear-ear left"></div>
+            <div class="bear-ear right"></div>
+            <div class="bear-head">
+                <div class="bear-eye left"></div>
+                <div class="bear-eye right"></div>
+                <div class="bear-muzzle"></div>
+                <div class="bear-nose"></div>
+            </div>
+            <div class="bear-body"></div>
+            <div class="bear-arm left"></div>
+            <div class="bear-arm right"></div>
+            <div class="bear-heart"></div>
+        </div>
+    </div>
 
     <script>
         const PARTICLE_COUNT = 8000;
@@ -74,6 +211,9 @@
         let threeFingerFrames = 0;
         let nonThreeFingerFrames = 0;
         let flowerAnimationVisible = false;
+        let fourFingerFrames = 0;
+        let nonFourFingerFrames = 0;
+        let bearAnimationVisible = false;
 
         
         function getCloudPositions() {
@@ -357,14 +497,44 @@
             flowerAnimation.classList.remove('visible');
         }
 
+        function isFourFingerGesture(landmarks) {
+            return landmarks[8].y < landmarks[6].y &&
+                landmarks[12].y < landmarks[10].y &&
+                landmarks[16].y < landmarks[14].y &&
+                landmarks[20].y < landmarks[18].y;
+        }
+
+        function showBearAnimation() {
+            if (bearAnimationVisible) return;
+            bearAnimationVisible = true;
+            bearAnimation.classList.add('visible');
+        }
+
+        function hideBearAnimation() {
+            bearAnimationVisible = false;
+            bearAnimation.classList.remove('visible');
+        }
+
         function onResults(results) {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
                 const isThreeFinger = isThreeFingerGesture(landmarks);
+                const isFourFinger = isFourFingerGesture(landmarks);
                 const shapeIndex = detectGesture(landmarks);
                 setShape(shapeIndex);
 
-                if (isThreeFinger) {
+                if (isFourFinger) {
+                    fourFingerFrames++;
+                    nonFourFingerFrames = 0;
+                    hideFlowerAnimation();
+                    if (fourFingerFrames >= 3) showBearAnimation();
+                } else {
+                    fourFingerFrames = 0;
+                    nonFourFingerFrames++;
+                    if (nonFourFingerFrames >= 5) hideBearAnimation();
+                }
+
+                if (isThreeFinger && !isFourFinger) {
                     threeFingerFrames++;
                     nonThreeFingerFrames = 0;
                     if (threeFingerFrames >= 3) showFlowerAnimation();
@@ -379,6 +549,7 @@
         const videoElement = document.getElementById('webcam');
         const errorMsg = document.getElementById('error-msg');
         const flowerAnimation = document.getElementById('flower-animation');
+        const bearAnimation = document.getElementById('bear-animation');
 
         flowerAnimation.addEventListener('load', () => {
             if (flowerAnimationVisible && flowerAnimation.contentWindow.openMagic) {
