@@ -83,118 +83,6 @@
             border: 0;
             z-index: 1;
         }
-        #bear-animation > .bear {
-            display: none;
-        }
-        .bear {
-            position: relative;
-            width: 190px;
-            height: 260px;
-            animation: bearFloat 2.2s ease-in-out infinite;
-        }
-        .bear-ear {
-            position: absolute;
-            top: 8px;
-            width: 62px;
-            height: 62px;
-            border: 8px solid #5b3426;
-            border-radius: 50%;
-            background: #c47a4a;
-        }
-        .bear-ear.left { left: 8px; }
-        .bear-ear.right { right: 8px; }
-        .bear-head {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            width: 140px;
-            height: 125px;
-            border-radius: 48% 48% 45% 45%;
-            background: #c47a4a;
-            border: 8px solid #5b3426;
-            z-index: 2;
-        }
-        .bear-muzzle {
-            position: absolute;
-            left: 31px;
-            bottom: 17px;
-            width: 62px;
-            height: 42px;
-            border-radius: 50%;
-            background: #f0b477;
-        }
-        .bear-eye {
-            position: absolute;
-            top: 42px;
-            width: 12px;
-            height: 16px;
-            border-radius: 50%;
-            background: #21130f;
-        }
-        .bear-eye.left { left: 35px; }
-        .bear-eye.right { right: 35px; }
-        .bear-nose {
-            position: absolute;
-            left: 56px;
-            top: 72px;
-            width: 25px;
-            height: 17px;
-            border-radius: 50%;
-            background: #21130f;
-        }
-        .bear-body {
-            position: absolute;
-            bottom: 0;
-            left: 22px;
-            width: 146px;
-            height: 135px;
-            border-radius: 48% 48% 35% 35%;
-            background: #ad653b;
-            border: 8px solid #5b3426;
-        }
-        .bear-arm {
-            position: absolute;
-            top: 112px;
-            width: 78px;
-            height: 36px;
-            border-radius: 30px;
-            background: #c47a4a;
-            border: 8px solid #5b3426;
-            z-index: 4;
-        }
-        .bear-arm.left { left: -17px; transform: rotate(25deg); }
-        .bear-arm.right { right: -17px; transform: rotate(-25deg); }
-        .bear-heart {
-            position: absolute;
-            left: 66px;
-            top: 120px;
-            width: 58px;
-            height: 58px;
-            background: #ff3b69;
-            transform: rotate(-45deg);
-            box-shadow: 0 0 28px rgba(255, 59, 105, 0.9);
-            z-index: 5;
-            animation: heartBeat 1.1s ease-in-out infinite;
-        }
-        .bear-heart::before,
-        .bear-heart::after {
-            content: '';
-            position: absolute;
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            background: #ff3b69;
-        }
-        .bear-heart::before { top: -29px; left: 0; }
-        .bear-heart::after { top: 0; left: 29px; }
-        @keyframes bearFloat {
-            0%, 100% { transform: translateY(0) rotate(-2deg); }
-            50% { transform: translateY(-18px) rotate(2deg); }
-        }
-        @keyframes heartBeat {
-            0%, 100% { scale: 1; }
-            50% { scale: 1.14; }
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -209,20 +97,6 @@
     <iframe id="heart-animation" src="hati.html" title="Animasi hati dan I Love You"></iframe>
     <div id="bear-animation" aria-label="Boneka beruang memegang hati">
         <iframe class="bear-reference" src="beruang.html" title="I love you darling"></iframe>
-        <div class="bear">
-            <div class="bear-ear left"></div>
-            <div class="bear-ear right"></div>
-            <div class="bear-head">
-                <div class="bear-eye left"></div>
-                <div class="bear-eye right"></div>
-                <div class="bear-muzzle"></div>
-                <div class="bear-nose"></div>
-            </div>
-            <div class="bear-body"></div>
-            <div class="bear-arm left"></div>
-            <div class="bear-arm right"></div>
-            <div class="bear-heart"></div>
-        </div>
     </div>
 
     <script>
@@ -240,6 +114,9 @@
         let fiveFingerFrames = 0;
         let nonFiveFingerFrames = 0;
         let heartAnimationVisible = false;
+        let candidateShapeIndex = 0;
+        let candidateShapeFrames = 0;
+        let noHandFrames = 0;
         let fourFingerFrames = 0;
         let nonFourFingerFrames = 0;
         let bearAnimationVisible = false;
@@ -447,6 +324,16 @@
             }
         }
 
+        function setStableShape(shapeIndex) {
+            if (candidateShapeIndex === shapeIndex) {
+                candidateShapeFrames++;
+            } else {
+                candidateShapeIndex = shapeIndex;
+                candidateShapeFrames = 1;
+            }
+            if (candidateShapeFrames >= 4) setShape(shapeIndex);
+        }
+
         function animate() {
             requestAnimationFrame(animate);
 
@@ -481,22 +368,45 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        function detectGesture(landmarks) {
-            const isIndexOpen = landmarks[8].y < landmarks[6].y;
-            const isMiddleOpen = landmarks[12].y < landmarks[10].y;
-            const isRingOpen = landmarks[16].y < landmarks[14].y;
-            const isPinkyOpen = landmarks[20].y < landmarks[18].y;
+        function isFingerOpen(landmarks, tipIndex, pipIndex) {
+            const tip = landmarks[tipIndex];
+            const pip = landmarks[pipIndex];
+            const wrist = landmarks[0];
+            const tipDistance = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
+            const pipDistance = Math.hypot(pip.x - wrist.x, pip.y - wrist.y);
+            return tip.y < pip.y - 0.015 || tipDistance > pipDistance + 0.035;
+        }
 
-            if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+        function getFingerState(landmarks) {
+            return {
+                index: isFingerOpen(landmarks, 8, 6),
+                middle: isFingerOpen(landmarks, 12, 10),
+                ring: isFingerOpen(landmarks, 16, 14),
+                pinky: isFingerOpen(landmarks, 20, 18)
+            };
+        }
+
+        function isThumbOpen(landmarks) {
+            const wrist = landmarks[0];
+            const thumbTip = landmarks[4];
+            const thumbJoint = landmarks[3];
+            return Math.hypot(thumbTip.x - wrist.x, thumbTip.y - wrist.y) >
+                Math.hypot(thumbJoint.x - wrist.x, thumbJoint.y - wrist.y) + 0.035;
+        }
+
+        function detectGesture(landmarks) {
+            const fingers = getFingerState(landmarks);
+
+            if (fingers.index && fingers.middle && !fingers.ring && !fingers.pinky) {
                 return 2;
             }
-            if (isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+            if (fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
                 return 1;
             }
-            if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+            if (!fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
                 return 0;
             }
-            if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) {
+            if (fingers.index && fingers.middle && fingers.ring && fingers.pinky) {
                 return 3;
             }
 
@@ -504,14 +414,14 @@
         }
 
         function isThreeFingerGesture(landmarks) {
-            return landmarks[8].y < landmarks[6].y &&
-                landmarks[12].y < landmarks[10].y &&
-                landmarks[16].y < landmarks[14].y &&
-                landmarks[20].y >= landmarks[18].y;
+            const fingers = getFingerState(landmarks);
+            return fingers.index && fingers.middle && fingers.ring && !fingers.pinky;
         }
 
         function showFlowerAnimation() {
             if (flowerAnimationVisible) return;
+            hideHeartAnimation();
+            hideBearAnimation();
             flowerAnimationVisible = true;
             flowerAnimation.classList.add('visible');
             if (flowerAnimation.contentWindow.openMagic) {
@@ -527,6 +437,8 @@
 
         function showHeartAnimation() {
             if (heartAnimationVisible) return;
+            hideFlowerAnimation();
+            hideBearAnimation();
             heartAnimationVisible = true;
             heartAnimation.classList.add('visible');
             if (heartAnimation.contentWindow.openMagic) {
@@ -540,27 +452,22 @@
         }
 
         function isFourFingerGesture(landmarks) {
-            return landmarks[8].y < landmarks[6].y &&
-                landmarks[12].y < landmarks[10].y &&
-                landmarks[16].y < landmarks[14].y &&
-                landmarks[20].y < landmarks[18].y &&
+            const fingers = getFingerState(landmarks);
+            return fingers.index && fingers.middle && fingers.ring && fingers.pinky &&
                 !isFiveFingerGesture(landmarks);
         }
 
         function isFiveFingerGesture(landmarks) {
-            const isThumbOpen = Math.hypot(
-                landmarks[4].x - landmarks[2].x,
-                landmarks[4].y - landmarks[2].y
-            ) > 0.18;
-            return isThumbOpen &&
-                landmarks[8].y < landmarks[6].y &&
-                landmarks[12].y < landmarks[10].y &&
-                landmarks[16].y < landmarks[14].y &&
-                landmarks[20].y < landmarks[18].y;
+            const fingers = getFingerState(landmarks);
+            return isThumbOpen(landmarks) &&
+                fingers.index && fingers.middle && fingers.ring && fingers.pinky;
         }
 
         function showBearAnimation() {
             if (bearAnimationVisible) return;
+            hideFlowerAnimation();
+            hideHeartAnimation();
+            setShape(0);
             bearAnimationVisible = true;
             bearAnimation.classList.add('visible');
         }
@@ -579,6 +486,7 @@
                     isFourFinger: isFourFingerGesture(landmarks),
                     isFiveFinger: isFiveFingerGesture(landmarks)
                 }));
+                noHandFrames = 0;
                 const isFiveFinger = gestures.some((gesture) => gesture.isFiveFinger);
                 const isFourFinger = gestures.some((gesture) => gesture.isFourFinger);
                 const isThreeFinger = gestures.some((gesture) => gesture.isThreeFinger);
@@ -591,7 +499,7 @@
                         : gestures.some((gesture) => gesture.shapeIndex === 2)
                             ? 2
                             : 0;
-                setShape(shapeIndex);
+                setStableShape(shapeIndex);
 
                 if (shapeIndex === 0) {
                     hideFlowerAnimation();
@@ -611,7 +519,7 @@
                 if (isFourFinger && !isFiveFinger) {
                     fourFingerFrames++;
                     nonFourFingerFrames = 0;
-                    hideFlowerAnimation();
+                    if (fourFingerFrames >= 3) showBearAnimation();
                 } else {
                     fourFingerFrames = 0;
                     nonFourFingerFrames++;
@@ -626,6 +534,14 @@
                     threeFingerFrames = 0;
                     nonThreeFingerFrames++;
                     if (nonThreeFingerFrames >= 5) hideFlowerAnimation();
+                }
+            } else {
+                noHandFrames++;
+                if (noHandFrames >= 5) {
+                    setStableShape(0);
+                    hideFlowerAnimation();
+                    hideHeartAnimation();
+                    hideBearAnimation();
                 }
             }
         }
