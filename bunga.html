@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I Love You</title>
+  <style>
+    :root {
+      --pink: #ff3d72;
+      --rose: #ff8eaa;
+      --ink: #010103;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { width: 100%; height: 100%; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      touch-action: none;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(90, 5, 35, .22), transparent 42%),
+        radial-gradient(circle at 15% 20%, rgba(255, 61, 114, .08), transparent 25%),
+        var(--ink);
+      color: #fff;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      opacity: .2;
+      background-image: radial-gradient(#fff 1px, transparent 1px);
+      background-size: 47px 47px;
+      pointer-events: none;
+    }
+
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+    .message {
+      position: fixed;
+      z-index: 2;
+      top: 38%;
+      left: 50%;
+      width: min(86vw, 720px);
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: clamp(2rem, 6vw, 4.6rem);
+      line-height: 1.1;
+      letter-spacing: .12em;
+      text-align: center;
+      text-shadow: 0 0 8px #fff, 0 0 24px var(--pink), 0 0 55px var(--pink);
+      animation: breathe 3s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .message span { color: var(--rose); }
+
+    .hint {
+      position: fixed;
+      z-index: 2;
+      bottom: 7vh;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, .55);
+      font: 12px/1.5 Arial, sans-serif;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    @keyframes breathe {
+      from { opacity: .78; transform: translate(-50%, -50%) scale(.98); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .message { animation: none; }
+    }
+  </style>
+</head>
+<body class="not-loaded">
+  <canvas id="canvas" aria-label="Animasi hati berisi partikel"></canvas>
+  <div class="message">I <span>LOVE</span> YOU</div>
+  <div class="hint">gerakkan kursor atau sentuh layar</div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const particles = [];
+    const arrows = [];
+    const pointer = { x: 0, y: 0, active: false };
+    const particleCount = 2600;
+    let animationId = 0;
+    let width = 0;
+    let height = 0;
+    let scale = 1;
+    let lastArrow = 0;
+
+    function heartPoint(t, fill) {
+      const x = 16 * Math.sin(t) ** 3;
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      const depth = fill ? Math.sqrt(Math.random()) : 1;
+      return { x: x * scale * depth, y: -y * scale * depth };
+    }
+
+    function resize() {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      scale = Math.min(width, height) / 31;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      createParticles();
+    }
+
+    function createParticles() {
+      particles.length = 0;
+      for (let index = 0; index < particleCount; index += 1) {
+        const point = heartPoint(Math.random() * Math.PI * 2, true);
+        particles.push({
+          x: width / 2 + point.x,
+          y: height / 2 + point.y,
+          baseX: width / 2 + point.x,
+          baseY: height / 2 + point.y,
+          size: Math.random() * 1.25 + .35,
+          phase: Math.random() * Math.PI * 2,
+          speed: Math.random() * .018 + .008,
+          hue: Math.random() > .82 ? 345 : 352
+        });
+      }
+    }
+
+    function createArrow(time) {
+      if (time - lastArrow < 1500) return;
+      lastArrow = time;
+      const fromLeft = Math.random() > .5;
+      const startX = fromLeft ? -120 : width + 120;
+      const startY = Math.random() * height * .8 + height * .1;
+      const targetX = width / 2;
+      const targetY = height / 2;
+      const angle = Math.atan2(targetY - startY, targetX - startX);
+      arrows.push({ x: startX, y: startY, angle, speed: 7 + Math.random() * 2, life: 0 });
+    }
+
+    function drawArrow(arrow) {
+      const length = Math.min(width, height) * .24;
+      const tailX = arrow.x - Math.cos(arrow.angle) * length;
+      const tailY = arrow.y - Math.sin(arrow.angle) * length;
+      context.save();
+      context.globalAlpha = Math.max(0, 1 - arrow.life / 180);
+      context.shadowBlur = 18;
+      context.shadowColor = '#ff8eaa';
+      context.strokeStyle = '#fff';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(tailX, tailY);
+      context.lineTo(arrow.x, arrow.y);
+      context.stroke();
+      context.fillStyle = '#ff5f88';
+      context.beginPath();
+      context.moveTo(arrow.x, arrow.y);
+      context.lineTo(arrow.x - Math.cos(arrow.angle - .45) * 23, arrow.y - Math.sin(arrow.angle - .45) * 23);
+      context.lineTo(arrow.x - Math.cos(arrow.angle + .45) * 23, arrow.y - Math.sin(arrow.angle + .45) * 23);
+      context.closePath();
+      context.fill();
+      context.restore();
+    }
+
+    function animate(time) {
+      context.clearRect(0, 0, width, height);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      particles.forEach((particle) => {
+        particle.phase += particle.speed;
+        let x = particle.baseX + Math.cos(particle.phase) * 2.2;
+        let y = particle.baseY + Math.sin(particle.phase * .8) * 2.2;
+        if (pointer.active) {
+          const dx = x - pointer.x;
+          const dy = y - pointer.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance < 105 && distance > 0) {
+            const force = (105 - distance) / 105;
+            x += dx / distance * force * 25;
+            y += dy / distance * force * 25;
+          }
+        }
+        context.globalAlpha = .55 + Math.sin(particle.phase) * .25;
+        context.fillStyle = `hsl(${particle.hue}, 100%, 64%)`;
+        context.beginPath();
+        context.arc(x, y, particle.size, 0, Math.PI * 2);
+        context.fill();
+      });
+      context.globalAlpha = 1;
+      createArrow(time);
+      for (let index = arrows.length - 1; index >= 0; index -= 1) {
+        const arrow = arrows[index];
+        arrow.x += Math.cos(arrow.angle) * arrow.speed;
+        arrow.y += Math.sin(arrow.angle) * arrow.speed;
+        arrow.life += 1;
+        drawArrow(arrow);
+        if (arrow.life > 180) arrows.splice(index, 1);
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function updatePointer(x, y) {
+      pointer.x = x;
+      pointer.y = y;
+      pointer.active = true;
+    }
+
+    function openMagic() {
+      document.body.classList.remove('not-loaded');
+    }
+
+    function resetAnimation() {
+      arrows.length = 0;
+      createParticles();
+      openMagic();
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (event) => updatePointer(event.clientX, event.clientY));
+    window.addEventListener('mouseleave', () => { pointer.active = false; });
+    window.addEventListener('touchmove', (event) => {
+      if (event.touches[0]) updatePointer(event.touches[0].clientX, event.touches[0].clientY);
+    }, { passive: true });
+    window.addEventListener('touchend', () => { pointer.active = false; });
+    resize();
+    animationId = requestAnimationFrame(animate);
+    window.addEventListener('load', () => window.setTimeout(openMagic, 250));
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I Love You, Darling</title>
+  <style>
+    :root { --pink: #ff3d72; --brown: #9a5a3c; --cream: #f6c38d; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      margin: 0;
+      background: radial-gradient(circle at 50% 46%, #242424 0, #0e0e0e 42%, #020202 100%);
+      color: #fff;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      opacity: .48;
+      background-image: radial-gradient(circle, rgba(255,255,255,.9) 0 1px, transparent 1.5px);
+      background-size: 83px 71px;
+      background-position: 12px 19px;
+      pointer-events: none;
+    }
+    .scene { position: relative; z-index: 1; width: min(90vw, 560px); height: min(92vh, 720px); text-align: center; }
+    h1 { margin: 7vh 0 10px; font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 400; text-shadow: 0 0 12px #fff, 0 0 28px var(--pink); }
+    h2 { margin: 0; color: rgba(255,255,255,.75); font-size: clamp(1rem, 2.5vw, 1.35rem); font-weight: 400; }
+    .bear {
+      position: absolute;
+      left: 50%;
+      bottom: 7%;
+      width: 190px;
+      height: 270px;
+      transform: translateX(-50%);
+    }
+    .ear, .head, .body, .arm { background: var(--brown); border: 7px solid #503024; }
+    .ear { position: absolute; top: 2px; width: 62px; height: 62px; border-radius: 50%; }
+    .ear.left { left: 5px; } .ear.right { right: 5px; }
+    .head { position: absolute; top: 22px; left: 25px; z-index: 2; width: 140px; height: 128px; border-radius: 48%; }
+    .eye { position: absolute; top: 40px; width: 11px; height: 15px; border-radius: 50%; background: #1d100d; }
+    .eye.left { left: 34px; } .eye.right { right: 34px; }
+    .muzzle { position: absolute; left: 32px; bottom: 14px; width: 61px; height: 40px; border-radius: 50%; background: var(--cream); }
+    .nose { position: absolute; left: 55px; top: 70px; z-index: 1; width: 26px; height: 17px; border-radius: 50%; background: #1d100d; }
+    .body { position: absolute; bottom: 0; left: 22px; width: 146px; height: 142px; border-radius: 48% 48% 35% 35%; }
+    .arm { position: absolute; top: 115px; z-index: 4; width: 78px; height: 37px; border-radius: 30px; }
+    .arm.left { left: -17px; transform: rotate(25deg); } .arm.right { right: -17px; transform: rotate(-25deg); }
+    .heart { position: absolute; left: 66px; top: 126px; z-index: 5; width: 58px; height: 58px; transform: rotate(-45deg); background: var(--pink); box-shadow: 0 0 28px rgba(255,61,114,.9); }
+    .heart::before, .heart::after { content: ""; position: absolute; width: 58px; height: 58px; border-radius: 50%; background: var(--pink); }
+    .heart::before { top: -29px; left: 0; } .heart::after { top: 0; left: 29px; }
+    .floating-heart { position: absolute; color: var(--pink); font-size: 22px; opacity: .8; text-shadow: 0 0 14px var(--pink); }
+    .floating-heart.one { top: 38%; left: 8%; } .floating-heart.two { top: 48%; right: 7%; font-size: 32px; }
+    .floating-heart.three { bottom: 18%; left: 18%; font-size: 16px; }
+    @media (max-width: 500px) { .scene { width: 100vw; } .bear { bottom: 8%; } }
+  </style>
+</head>
+<body>
+  <main class="scene" aria-label="Pesan cinta dengan boneka beruang">
+    <h1>I love you, darling</h1>
+    <h2>You are the reason for my happiness...</h2>
+    <div class="floating-heart one" aria-hidden="true">&#10084;</div>
+    <div class="floating-heart two" aria-hidden="true">&#10084;</div>
+    <div class="floating-heart three" aria-hidden="true">&#10084;</div>
+    <div class="bear" aria-hidden="true">
+      <div class="ear left"></div><div class="ear right"></div>
+      <div class="head"><div class="eye left"></div><div class="eye right"></div><div class="muzzle"></div><div class="nose"></div></div>
+      <div class="body"></div><div class="arm left"></div><div class="arm right"></div><div class="heart"></div>
+    </div>
+  </main>
+</body>
+</html>
