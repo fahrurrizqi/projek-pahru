@@ -371,10 +371,7 @@
         function isFingerOpen(landmarks, tipIndex, pipIndex) {
             const tip = landmarks[tipIndex];
             const pip = landmarks[pipIndex];
-            const wrist = landmarks[0];
-            const tipDistance = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
-            const pipDistance = Math.hypot(pip.x - wrist.x, pip.y - wrist.y);
-            return tip.y < pip.y - 0.015 || tipDistance > pipDistance + 0.035;
+            return tip.y < pip.y - 0.02;
         }
 
         function getFingerState(landmarks) {
@@ -415,7 +412,10 @@
 
         function isThreeFingerGesture(landmarks) {
             const fingers = getFingerState(landmarks);
-            return fingers.index && fingers.middle && fingers.ring && !fingers.pinky;
+            const threeNonThumb = fingers.index && fingers.middle && fingers.ring && !fingers.pinky;
+            const thumbIndexMiddle = isThumbOpen(landmarks) &&
+                fingers.index && fingers.middle && !fingers.ring && !fingers.pinky;
+            return threeNonThumb || thumbIndexMiddle;
         }
 
         function showFlowerAnimation() {
