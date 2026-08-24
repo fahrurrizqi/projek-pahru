@@ -4,9 +4,42 @@
   <meta charset="UTF-8">
   <title>CodeByUlammnrg - Flower Animation CSS</title>
   <link rel="stylesheet" href="./style.css">
+  <style>
+    .message {
+      position: fixed;
+      z-index: 200;
+      top: 25%;
+      left: 50%;
+      width: min(88vw, 720px);
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-size: clamp(2rem, 6vw, 4.7rem);
+      line-height: 1.1;
+      letter-spacing: .12em;
+      text-shadow: 0 0 8px #fff, 0 0 24px #6bf0ff, 0 0 56px #6bf0ff;
+      animation: breathe 3s ease-in-out infinite alternate;
+      pointer-events: none;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: white;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+    .not-loaded .message {
+      opacity: 0;
+    }
+    body:not(.not-loaded) .message {
+      opacity: 1;
+    }
+    .message span { color: #a7ffee; }
+    @keyframes breathe {
+      from { opacity: .78; transform: translate(-50%, -50%) scale(.98); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+    }
+  </style>
 
 </head>
 <body class="not-loaded">
+  <div class="message">I <span>LOVE</span> YOU</div>
   <div class="night"></div>
   <div class="flowers">
     <div class="flower flower--1">

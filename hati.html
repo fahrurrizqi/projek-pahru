@@ -111,13 +111,13 @@
     }
 
     function addArrow(time) {
-      if (time - lastArrow < 1450) return;
+      if (time - lastArrow < 1000) return;
       lastArrow = time;
       const fromLeft = Math.random() > .5;
       const x = fromLeft ? -120 : width + 120;
       const y = height * (.15 + Math.random() * .7);
       const angle = Math.atan2(height / 2 - y, width / 2 - x);
-      arrows.push({ x, y, angle, speed: 7 + Math.random() * 2, life: 0, hit: false });
+      arrows.push({ x, y, angle, speed: 14 + Math.random() * 4, life: 0, hit: false });
     }
 
     function drawArrow(arrow) {
