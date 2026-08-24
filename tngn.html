@@ -12,16 +12,18 @@
             font-family: Arial, sans-serif;
         }
         #webcam {
-            position: absolute;
+            position: fixed;
             bottom: 20px;
             left: 20px;
             width: 240px;
             height: 180px;
-            border: 2px solid #00ffcc;
-            border-radius: 8px;
+            border: 3px solid #00ffcc;
+            border-radius: 12px;
             transform: scaleX(-1);
-            z-index: 10;
+            z-index: 100000;
             background-color: #111;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+            pointer-events: none;
         }
         #error-msg {
             position: absolute;
@@ -92,12 +94,12 @@
 
     <div id="error-msg">⚠️ Kamera tidak terdeteksi atau izin akses kamera ditolak!<br>Mohon izinkan akses kamera pada browser Anda.</div>
 
-    <video id="webcam" autoplay playsinline muted></video>
     <iframe id="flower-animation" src="bunga.html" title="Animasi bunga"></iframe>
     <iframe id="heart-animation" src="hati.html" title="Animasi hati dan I Love You"></iframe>
     <div id="bear-animation" aria-label="Boneka beruang memegang hati">
         <iframe class="bear-reference" src="beruang.html" title="I love you darling"></iframe>
     </div>
+    <video id="webcam" autoplay playsinline muted></video>
 
     <script>
         const PARTICLE_COUNT = 8000;
